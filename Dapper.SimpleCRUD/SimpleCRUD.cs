@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -7,10 +7,15 @@ using System.Reflection;
 using System.Text;
 using Microsoft.CSharp.RuntimeBinder;
 
-namespace Dapper
+namespace Dapper.Clabnet
 {
     /// <summary>
-    /// Main class for Dapper.SimpleCRUD extensions
+    /// Main class for Dapper.SimpleCRUD extensions. 
+    /// Clabnet version 21/6/2015.
+    /// This is a fork of https://github.com/YogirajA/Dapper.SimpleCRUD/blob/feature/AssociativeInsert/Dapper.SimpleCRUD/SimpleCRUD.cs
+    /// The main differences between this code and original https://github.com/ericdc1/Dapper.SimpleCRUD 
+    /// are only related to adding entities with Primary Key named as "id" but No Identity,
+    /// with Key and Required attributes specified.  
     /// </summary>
     public static partial class SimpleCRUD
     {
@@ -19,7 +24,7 @@ namespace Dapper
         {
             SetDialect(_dialect);
         }
-     
+
         private static Dialect _dialect = Dialect.SQLServer;
         private static string _encapsulation;
         private static string _getIdentitySql;
@@ -202,6 +207,25 @@ namespace Dapper
             return Insert<int?>(connection, entityToInsert, transaction, commandTimeout);
         }
 
+
+
+        /// <summary>
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="entityToInsert"></param>
+        /// <param name="transaction"></param>
+        /// <param name="commandTimeout"></param>
+        /// <returns></returns>
+        public static int InsertNoPkConstraint(this IDbConnection connection,
+            object entityToInsert, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            var sb = InsertBuilder(entityToInsert);
+
+            return connection.Execute(sb.ToString(), entityToInsert, transaction, commandTimeout);
+        }
+
+
+
         /// <summary>
         /// <para>Inserts a row into the database</para>
         /// <para>By default inserts into the table matching the class name</para>
@@ -231,9 +255,9 @@ namespace Dapper
             {
                 throw new Exception("Invalid return type");
             }
-            if (keytype == typeof (Guid))
+            if (keytype == typeof(Guid))
             {
-               var guidvalue = (Guid)idProps.First().GetValue(entityToInsert,null);
+                var guidvalue = (Guid)idProps.First().GetValue(entityToInsert, null);
                 if (guidvalue == Guid.Empty)
                 {
                     var newguid = SequentialGuid();
@@ -241,36 +265,45 @@ namespace Dapper
                 }
             }
 
-            var name = GetTableName(entityToInsert);
-            var sb = new StringBuilder();
-            sb.AppendFormat("insert into {0}", name);
-            sb.Append(" (");
-            BuildInsertParameters(entityToInsert, sb);
-            sb.Append(") ");
-            sb.Append("values");
-            sb.Append(" (");
-            BuildInsertValues(entityToInsert, sb);
-            sb.Append(")");
+            var sb = InsertBuilder(entityToInsert);
 
-            if (keytype == typeof (Guid))
+            if (keytype == typeof(Guid))
             {
                 sb.Append(";select '" + idProps.First().GetValue(entityToInsert, null) + "' as id");
             }
             else
             {
-               sb.Append(";" +  _getIdentitySql);     
+                sb.Append(";" + _getIdentitySql);
             }
-    
+
             if (Debugger.IsAttached)
                 Trace.WriteLine(String.Format("Insert: {0}", sb));
 
             var r = connection.Query(sb.ToString(), entityToInsert, transaction, true, commandTimeout);
-            
+
             if (keytype == typeof(Guid))
             {
                 return (TKey)idProps.First().GetValue(entityToInsert, null);
             }
             return (TKey)r.First().id;
+        }
+
+        private static StringBuilder InsertBuilder(object entityToInsert)
+        {
+            var name = GetTableName(entityToInsert);
+            var sb = new StringBuilder();
+
+            sb.AppendFormat("insert into {0}", name);
+            sb.Append(" (");
+            BuildInsertParameters(entityToInsert, sb);
+            sb.Append(") ");
+
+            sb.Append("values");
+            sb.Append(" (");
+            BuildInsertValues(entityToInsert, sb);
+            sb.Append(")");
+
+            return sb;
         }
 
 
@@ -411,7 +444,7 @@ namespace Dapper
                 sb.Append(GetColumnName(propertyInfos.ElementAt(i)));
                 //if there is a custom column name add an "as customcolumnname" to the item so it maps properly
                 if (propertyInfos.ElementAt(i).GetCustomAttributes(true).SingleOrDefault(attr => attr.GetType().Name == "ColumnAttribute") != null)
-                    sb.Append(" as " + propertyInfos.ElementAt(i).Name);
+                    sb.Append(" as " + propertyInfos.ElementAt(i).Name + " ");
                 if (i < propertyInfos.Count() - 1)
                     sb.Append(",");
             }
@@ -451,10 +484,18 @@ namespace Dapper
             for (var i = 0; i < props.Count(); i++)
             {
                 var property = props.ElementAt(i);
-                if (property.PropertyType != typeof(Guid) && property.GetCustomAttributes(true).Any(attr => attr.GetType().Name == "KeyAttribute")) continue;
+
+                // clabnet 21/6/2015
+                // for adding entities with Primary Key named as "id" but No Sequence,
+                // with Key and Required attributes specified.  
+                if (property.PropertyType != typeof(Guid)
+                &&  property.GetCustomAttributes(true).Any(attr => attr.GetType().Name == "KeyAttribute")
+                && !property.GetCustomAttributes(true).Any(attr => attr.GetType().Name == "RequiredAttribute"))
+                    continue;
+
                 if (property.GetCustomAttributes(true).Any(attr => attr.GetType().Name == "ReadOnlyAttribute" && IsReadOnly(property))) continue;
 
-                if (property.Name == "Id" && property.PropertyType != typeof(Guid)) continue;
+                if (property.Name == "Id") continue;
                 sb.AppendFormat("@{0}", property.Name);
                 if (i < props.Count() - 1)
                     sb.Append(", ");
@@ -473,9 +514,17 @@ namespace Dapper
             for (var i = 0; i < props.Count(); i++)
             {
                 var property = props.ElementAt(i);
-                if (property.PropertyType != typeof(Guid) && property.GetCustomAttributes(true).Any(attr => attr.GetType().Name == "KeyAttribute")) continue;
+
+                // clabnet 21/6/2015
+                // for adding entities with Primary Key named as "id" but No Sequence,
+                // with Key and Required attributes specified.  
+                if (property.PropertyType != typeof(Guid)
+                && property.GetCustomAttributes(true).Any(attr => attr.GetType().Name == "KeyAttribute")
+                && !property.GetCustomAttributes(true).Any(attr => attr.GetType().Name == "RequiredAttribute"))
+                    continue;
+                
                 if (property.GetCustomAttributes(true).Any(attr => attr.GetType().Name == "ReadOnlyAttribute" && IsReadOnly(property))) continue;
-                if (property.Name == "Id" && property.PropertyType != typeof(Guid)) continue;
+                if (property.Name == "Id") continue;
                 sb.Append(GetColumnName(property));
                 if (i < props.Count() - 1)
                     sb.Append(", ");
@@ -536,13 +585,13 @@ namespace Dapper
         //Get all properties that are NOT named Id, DO NOT have the Key attribute, and are not marked ReadOnly
         private static IEnumerable<PropertyInfo> GetUpdateableProperties(object entity)
         {
-            var updateableProperties =  GetScaffoldableProperties(entity);
+            var updateableProperties = GetScaffoldableProperties(entity);
             //remove ones with ID
             updateableProperties = updateableProperties.Where(p => p.Name != "Id");
             //remove ones with key attribute
-            updateableProperties = updateableProperties.Where(p=> p.GetCustomAttributes(true).Any(attr => attr.GetType().Name == "KeyAttribute") == false);
+            updateableProperties = updateableProperties.Where(p => p.GetCustomAttributes(true).Any(attr => attr.GetType().Name == "KeyAttribute") == false);
             //remove ones that are readonly
-            updateableProperties = updateableProperties.Where(p=> p.GetCustomAttributes(true).Any(attr => (attr.GetType().Name == "ReadOnlyAttribute") &&  IsReadOnly(p)) == false);
+            updateableProperties = updateableProperties.Where(p => p.GetCustomAttributes(true).Any(attr => (attr.GetType().Name == "ReadOnlyAttribute") && IsReadOnly(p)) == false);
 
             return updateableProperties;
         }
