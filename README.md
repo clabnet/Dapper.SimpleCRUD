@@ -1,5 +1,14 @@
 Dapper.SimpleCRUD - simple CRUD helpers for Dapper
 ========================================
+
+Why this fork
+-------------
+
+The main differences between this code and original https://github.com/ericdc1/Dapper.SimpleCRUD 
+are related to adding entities with Primary Key named as "id" but No Identity, with Key and Required attributes specified.  
+
+Thanks to https://github.com/YogirajA for suggestion.
+
 Features
 --------
 <img  align="right" src="https://raw.githubusercontent.com/ericdc1/Dapper.SimpleCRUD/master/images/SimpleCRUD-200x200.png" alt="SimpleCRUD">
