@@ -8,10 +8,7 @@ using System;
 using Npgsql;
 
 
-<<<<<<< HEAD
 
-=======
->>>>>>> 321365218dea78b8d9efa78cc49080db6ff3a3bd
 namespace Dapper.SimpleCRUDTests
 {
     #region DTOClasses
@@ -132,11 +129,7 @@ namespace Dapper.SimpleCRUDTests
             IDbConnection connection;
             if (_dbtype == SimpleCRUD.Dialect.PostgreSQL)
             {
-<<<<<<< HEAD
                 connection = new NpgsqlConnection(String.Format("Server={0};Port={1};User Id={2};Password={3};Database={4};", "localhost", "5432", "postgres", "passw0rd", "testdbsimplecrud"));
-=======
-                connection = new NpgsqlConnection(String.Format("Server={0};Port={1};User Id={2};Password={3};Database={4};", "localhost", "5432", "postgres", "postgrespass", "testdb"));
->>>>>>> 321365218dea78b8d9efa78cc49080db6ff3a3bd
                 SimpleCRUD.SetDialect(SimpleCRUD.Dialect.PostgreSQL);
             }
             else if (_dbtype == SimpleCRUD.Dialect.SQLite)
@@ -477,7 +470,6 @@ namespace Dapper.SimpleCRUDTests
 
         //GUID primary key tests
 
-<<<<<<< HEAD
         //public void InsertIntoTableWithUnspecifiedGuidKey()
         //{
         //    using (var connection = GetOpenConnection())
@@ -526,56 +518,6 @@ namespace Dapper.SimpleCRUDTests
         //        connection.Get<GUIDTest>(id).IsNull();
         //    }
         //}
-=======
-        public void InsertIntoTableWithUnspecifiedGuidKey()
-        {
-            using (var connection = GetOpenConnection())
-            {
-                var id = connection.Insert<Guid>(new GUIDTest { Name = "GuidUser" });
-                id.GetType().Name.IsEqualTo("Guid");
-                var record = connection.Get<GUIDTest>(id);
-                record.Name.IsEqualTo("GuidUser");
-                connection.Delete<GUIDTest>(id);
-            }
-        }
-
-        public void InsertIntoTableWithGuidKey()
-        {
-            using (var connection = GetOpenConnection())
-            {
-                var guid = new Guid("1a6fb33d-7141-47a0-b9fa-86a1a1945da9");
-                var id = connection.Insert<Guid>(new GUIDTest { Name = "InsertIntoTableWithGuidKey", Id = guid });
-                id.IsEqualTo(guid);
-                connection.Delete<GUIDTest>(id);
-            }
-        }
-
-        public void GetRecordWithGuidKey()
-        {
-            using (var connection = GetOpenConnection())
-            {
-                var guid = new Guid("2a6fb33d-7141-47a0-b9fa-86a1a1945da9");
-                connection.Insert<Guid>(new GUIDTest { Name = "GetRecordWithGuidKey", Id = guid });
-                var id = connection.GetList<GUIDTest>().First().Id;
-                var record = connection.Get<GUIDTest>(id);
-                record.Name.IsEqualTo("GetRecordWithGuidKey");
-                connection.Delete<GUIDTest>(id);
-
-            }
-        }
-
-        public void DeleteRecordWithGuidKey()
-        {
-            using (var connection = GetOpenConnection())
-            {
-                var guid = new Guid("3a6fb33d-7141-47a0-b9fa-86a1a1945da9");
-                connection.Insert<Guid>(new GUIDTest { Name = "DeleteRecordWithGuidKey", Id = guid });
-                var id = connection.GetList<GUIDTest>().First().Id;
-                connection.Delete<GUIDTest>(id);
-                connection.Get<GUIDTest>(id).IsNull();
-            }
-        }
->>>>>>> 321365218dea78b8d9efa78cc49080db6ff3a3bd
 
         //async  tests
         public void TestMultiInsertASync()
@@ -595,7 +537,6 @@ namespace Dapper.SimpleCRUDTests
             }
         }
 
-<<<<<<< HEAD
         //public void MultiInsertWithGuidAsync()
         //{
         //    using (var connection = GetOpenConnection())
@@ -611,23 +552,6 @@ namespace Dapper.SimpleCRUDTests
         //        connection.Execute("Delete from GUIDTest");
         //    }
         //}
-=======
-        public void MultiInsertWithGuidAsync()
-        {
-            using (var connection = GetOpenConnection())
-            {
-                connection.InsertAsync<Guid>(new GUIDTest { Name = "MultiInsertWithGuidAsync" });
-                connection.InsertAsync<Guid>(new GUIDTest { Name = "MultiInsertWithGuidAsync" });
-                connection.InsertAsync<Guid>(new GUIDTest { Name = "MultiInsertWithGuidAsync" });
-                connection.InsertAsync<Guid>(new GUIDTest { Name = "MultiInsertWithGuidAsync" });
-                //tiny wait to let the inserts happen
-                System.Threading.Thread.Sleep(300);
-                var list = connection.GetList<GUIDTest>(new { Name = "MultiInsertWithGuidAsync" });
-                list.Count().IsEqualTo(4);
-                connection.Execute("Delete from GUIDTest");
-            }
-        }
->>>>>>> 321365218dea78b8d9efa78cc49080db6ff3a3bd
 
         public void TestSimpleGetAsync()
         {

@@ -12,7 +12,6 @@ namespace Dapper.SimpleCRUDTests
     {
         static void Main(string[] args)
         {
-<<<<<<< HEAD
             // Setup();
             // RunTests();
 
@@ -25,18 +24,6 @@ namespace Dapper.SimpleCRUDTests
 
             // SetupSQLite();
             // RunTestsSQLite();
-=======
-            Setup();
-            RunTests();
-
-            //PostgreSQL tests assume port 5432 with username postgres and password postgrespass
-            //they are commented out by default since postgres setup is required to run tests
-            //SetupPG(); 
-            //RunTestsPG();   
-
-            SetupSQLite();
-            RunTestsSQLite();
->>>>>>> 321365218dea78b8d9efa78cc49080db6ff3a3bd
         }
 
         private static void Setup()
@@ -74,7 +61,6 @@ namespace Dapper.SimpleCRUDTests
 
         private static void SetupPG()
         {
-<<<<<<< HEAD
 
             SimpleCRUD.SetDialect(SimpleCRUD.Dialect.PostgreSQL);
 
@@ -91,21 +77,6 @@ namespace Dapper.SimpleCRUDTests
             {
                 connection.Open();
                 connection.Execute(@" CREATE TABLE public.Users (Id serial PRIMARY KEY, Name varchar(50) NOT NULL, Age integer NOT NULL, ScheduledDayOff integer, createddate varchar(50) NOT NULL DEFAULT ('now'::text)::date) ");
-=======
-            using (var connection = new NpgsqlConnection(String.Format("Server={0};Port={1};User Id={2};Password={3};Database={4};", "localhost", "5432", "postgres", "postgrespass", "postgres")))
-            {
-                connection.Open();
-                // drop  database 
-                connection.Execute("DROP DATABASE IF EXISTS  testdb;");
-                connection.Execute("CREATE DATABASE testdb  WITH OWNER = postgres ENCODING = 'UTF8' CONNECTION LIMIT = -1;");
-            }
-            System.Threading.Thread.Sleep(1000);
-
-            using (var connection = new NpgsqlConnection(String.Format("Server={0};Port={1};User Id={2};Password={3};Database={4};", "localhost", "5432", "postgres", "postgrespass", "testdb")))
-            {
-                connection.Open();
-                connection.Execute(@" create table Users (Id SERIAL PRIMARY KEY, Name varchar not null, Age int not null, ScheduledDayOff int null, CreatedDate not null default CURRENT_DATE) ");
->>>>>>> 321365218dea78b8d9efa78cc49080db6ff3a3bd
                 connection.Execute(@" create table Car (CarId SERIAL PRIMARY KEY, Id int null, Make varchar not null, Model varchar not null) ");
                 connection.Execute(@" create table BigCar (CarId BIGSERIAL PRIMARY KEY, Make varchar not null, Model varchar not null) ");
                 connection.Execute(@" alter sequence bigcar_carid_seq RESTART WITH 2147483650");
@@ -114,11 +85,6 @@ namespace Dapper.SimpleCRUDTests
                 connection.Execute(@" create table Log.CarLog (Id SERIAL PRIMARY KEY, LogNotes varchar NOT NULL) ");
                 connection.Execute(@" CREATE TABLE GUIDTest(Id uuid PRIMARY KEY,name varchar NOT NULL)");
                 connection.Execute(@" create table StrangeColumnNames (ItemId Serial PRIMARY KEY, word varchar not null, colstringstrangeword varchar) ");
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 321365218dea78b8d9efa78cc49080db6ff3a3bd
             }
 
         }
@@ -132,11 +98,7 @@ namespace Dapper.SimpleCRUDTests
             {
                 connection.Open();
 
-<<<<<<< HEAD
                 connection.Execute(@" create table Users (Id INTEGER PRIMARY KEY AUTOINCREMENT, Name nvarchar(100) not null, Age int not null, ScheduledDayOff int null, createddate datetime default current_timestamp ) ");
-=======
-                connection.Execute(@" create table Users (Id INTEGER PRIMARY KEY AUTOINCREMENT, Name nvarchar(100) not null, Age int not null, ScheduledDayOff int null, CreatedDate datetime default current_timestamp ) ");
->>>>>>> 321365218dea78b8d9efa78cc49080db6ff3a3bd
                 connection.Execute(@" create table Car (CarId INTEGER PRIMARY KEY AUTOINCREMENT, Id INTEGER null, Make nvarchar(100) not null, Model nvarchar(100) not null) ");
                 connection.Execute(@" create table BigCar (CarId INTEGER PRIMARY KEY AUTOINCREMENT, Make nvarchar(100) not null, Model nvarchar(100) not null) ");
                 connection.Execute(@" insert into BigCar (CarId,Make,Model) Values (2147483649,'car','car') ");
@@ -200,13 +162,8 @@ namespace Dapper.SimpleCRUDTests
             foreach (var method in typeof(Tests).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
             {
                 //skip schema tests
-<<<<<<< HEAD
                 if (method.Name.Contains("Schema")) continue;
 
-=======
-                if(method.Name.Contains("Schema")) continue;
-               
->>>>>>> 321365218dea78b8d9efa78cc49080db6ff3a3bd
                 Console.Write("Running " + method.Name + " in SQLite");
                 method.Invoke(pgtester, null);
                 Console.WriteLine(" - OK!");
